@@ -38,7 +38,7 @@ http://localhost:3000/editor
 
 **Swagger Live Edit**
 
-Default spec: `public/specs/petstore.yaml`
+Default spec: `public/specs/swagger.yaml`
 
 ```bash
 http://localhost:3000/swagger/edit
