@@ -1,0 +1,34 @@
+language: node_js
+
+# https://docs.travis-ci.com/user/build-stages
+
+jobs:
+
+  include:
+
+    - stage: deploy
+
+      node_js: 12
+
+      cache: npm
+
+      install:
+        - npm install
+
+      script:
+        - npm run production
+
+      # https://docs.travis-ci.com/user/deployment/pages/
+      deploy:
+        provider: pages
+        skip-cleanup: true
+        github-token: $GITHUB_TOKEN
+        local_dir: public
+        on:
+          branch: master
+
+# https://docs.travis-ci.com/user/notifications
+notifications:
+  email:
+    on_success: never
+    on_failure: always
