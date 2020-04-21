@@ -1,4 +1,4 @@
-# API (Spec) Usage Documentation
+# [API (Spec) Usage Documentation](https://github.com/mtvbrianking/api-usage-docs)
 
 ## Setup
 
