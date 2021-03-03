@@ -1,5 +1,7 @@
 # [API (Spec) Usage Documentation](https://mtvbrianking.github.io/api-usage-docs)
 
+[![Deploy](https://github.com/mtvbrianking/api-usage-docs/workflows/deploy/badge.svg)](https://github.com/mtvbrianking/api-usage-docs/actions?query=workflow:deploy)
+
 ## Setup
 
 ```bash

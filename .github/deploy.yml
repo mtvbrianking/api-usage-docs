@@ -35,8 +35,8 @@ jobs:
               ${{ runner.os }}-node-
 
       - name: Install
-        # run: npm ci
-        run: npm install
+        # run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run production
