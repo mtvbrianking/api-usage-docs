@@ -4,10 +4,10 @@ node_js: stable
 
 cache: npm
 
-install: 
-  - npm install
+install:
+  - npm ci
 
-script: 
+script:
   - npm run production
 
 before-deploy:
