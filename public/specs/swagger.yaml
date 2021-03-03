@@ -1,111 +1,1633 @@
-openapi: "3.0.0"
+openapi: 3.0.1
+
 info:
-  version: 1.0.0
-  title: Swagger Petstore
+  title: Example API
+  version: v1
+  description: |-
+    API usage documentation.
+
+    Register client applications via the [developer's web portal](https://developer.example.com)
+  termsOfService: https://opensource.org/licenses/MIT
+  contact:
+    name: Support
+    email: support@example.com
   license:
     name: MIT
+    url: https://opensource.org/licenses/MIT
+
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: http://sandbox-api.example.com/v1
+    description: Testing
+  - url: http://api.example.com/v1
+    description: Production
+
+tags:
+  - name: token
+    description: All about tokens.
+  - name: user
+    description: All about users.
+  - name: permission
+    description: All about permissions.
+  - name: role
+    description: All about roles.
+
+  - name: token_model
+    x-displayName: Token
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/TokenModel"/>
+  - name: user_model
+    x-displayName: User
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/UserModel"/>
+  - name: permission_model
+    x-displayName: Permission
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/PermissionModel"/>
+  - name: role_model
+    x-displayName: Role
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/RoleModel"/>
+
+  - name: 206_pagination_response
+    x-displayName: 206 Pagination Response
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/206PaginationResponse"/>
+
+  - name: 401_error_response
+    x-displayName: 401 Unauthorized
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/401HttpResponse"/>
+  - name: 403_error_response
+    x-displayName: 403 Forbidden
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/403HttpResponse"/>
+  - name: 404_error_response
+    x-displayName: 404 Not Found
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/404HttpResponse"/>
+  - name: 405_error_response
+    x-displayName: 405 Method Not Allowed
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/405HttpResponse"/>
+  - name: 422_error_response
+    x-displayName: 422 Unprocessable Entity
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/422HttpResponse"/>
+  - name: 429_error_response
+    x-displayName: 429 Too Many Requests
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/429HttpResponse"/>
+  - name: 500_error_response
+    x-displayName: 500 Internal Server Error
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/500HttpResponse"/>
+
+x-tagGroups:
+  - name: Requests
+    tags:
+      - token
+      - user
+      - permission
+      - role
+  - name: Models
+    tags:
+      - token_model
+      - user_model
+      - permission_model
+      - role_model
+  - name: Responses
+    tags:
+      - 206_pagination_response
+  - name: Error Responses
+    tags:
+      - 401_error_response
+      - 403_error_response
+      - 404_error_response
+      - 405_error_response
+      - 422_error_response
+      - 429_error_response
+      - 500_error_response
+
 paths:
-  /pets:
-    get:
-      summary: List all pets
-      operationId: listPets
+  /oauth/token:
+    post:
       tags:
-        - pets
+        - token
+      summary: Request OAuth token
+      operationId: requestToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - client_id
+                - client_secret
+                - grant_type
+              type: object
+              properties:
+                client_id:
+                  type: string
+                  format: uuid
+                client_secret:
+                  type: string
+                grant_type:
+                  type: string
+                  enum:
+                    - authorization_code
+                    - client_credentials
+                    - password
+                    - refresh_token
+                code:
+                  type: string
+                  description: |-
+                    Authorization code.
+
+                    <strong>Required if</strong> grant_type is `authorization_code`.
+                redirect_uri:
+                  type: string
+                  description: <strong>Required if</strong> grant_type is `authorization_code`.
+                  format: URI
+                refresh_token:
+                  type: string
+                  description: |-
+                    Refresh access-token.
+
+                    <strong>Required if</strong> grant_type is `refresh_token`.
+                username:
+                  type: string
+                  description: <strong>Required if</strong> grant_type is `password`.
+                password:
+                  type: string
+                  description: <strong>Required if</strong> grant_type is `password`.
+                  format: password
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                    example:
+                      - authenticate-user
+                      - confirm-email
+                      - reset-password
+                      - validate-email
+        required: false
+      responses:
+        200:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenModel'
+      security:
+        - password_grant: []
+        - client_credentials_grant: []
+        - authorization_code_grant: []
+      x-code-samples:
+        - lang: CURL - Password
+          source: |-
+            curl -X POST \
+              http://sandbox-api.example.com/v1/oauth/token \
+              -H 'Accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "grant_type": "password",
+                "client_id": "3102c90b-1936-4968-af9e-3701bcc6147c",
+                "client_secret": "OZHF4AuWWvMY0rKC2VWwEMlvobJ4GfCgGKopdadQ",
+                "username": "jdoe@example.com",
+                "password": "O7SQx63Y12iwaWHQ"
+              }'
+        - lang: CURL - Client Credentials
+          source: |-
+            curl -X POST \
+              http://sandbox-api.example.com/v1/oauth/token \
+              -H 'Accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "grant_type": "client_credentials",
+                "client_id": "3102c90b-1936-4968-af9e-3701bcc6147c",
+                "client_secret": "OZHF4AuWWvMY0rKC2VWwEMlvobJ4GfCgGKopdadQ"
+              }'
+
+  /users:
+    get:
+      tags:
+        - user
+      summary: Get users
+      description: Requires `view-any users` permission.
+      operationId: getUsers
+      parameters:
+        - name: paginate
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        206:
+          description: Partial Content
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/206PaginationResponse'
+                  - properties:
+                      data:
+                        type: array
+                        description: Users
+                        items:
+                          $ref: '#/components/schemas/UserModel'
+                      first_page_url:
+                        example: http://sandbox-api.example.com/v1/users?page=1
+                      path:
+                        example: http://sandbox-api.example.com/v1/users
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              http://sandbox-api.example.com/v1/users \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+    post:
+      tags:
+        - user
+      summary: Register user
+      description: |-
+        Requires `create users` permission.
+
+        Sets a random default password; see <a href='#operation/resetPassword'>reset password</a>.
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserModel'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/UserModel'
+                  - properties:
+                      role:
+                        $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X POST \
+              http://sandbox-api.example.com/v1/users \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "name": "John Doe",
+                "email": "jdoe@example.com",
+                "role_id": 1
+              }'
+  /users/auth:
+    post:
+      tags:
+        - user
+      summary: Authenticate user
+      description: Requires `authenticate-user` scope.
+      operationId: authenticateUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - email
+              - password
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jdoe@example.com
+                password:
+                  type: string
+                  example: Gm%Pm5^(
+        required: false
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/UserModel'
+                  - properties:
+                      role:
+                        $ref: '#/components/schemas/RoleModel'
+                      token:
+                        $ref: '#/components/schemas/TokenModel'
+      # security:
+      #   - password_grant:
+      #     - authenticate-user
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X POST \
+              http://sandbox-api.example.com/v1/users/auth \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "email": "jdoe@example.com",
+                "password": "Gm%Pm5^("
+              }'
+  /users/deauth:
+    post:
+      tags:
+        - user
+      summary: Deauthenticate user
+      description: |-
+        Invalidates existing user tokens to calling client app.
+
+        Requires `authenticate-user` scope.
+      operationId: deauthenticateUser
+      responses:
+        204:
+          description: No Content
+          content: {}
+      # security:
+      #   - client_credentials_grant:
+      #     - authenticate-user
+      #   - password_grant:
+      #     - authenticate-user
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X POST \
+              http://sandbox-api.example.com/v1/users/deauth \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+  /users/email:
+    put:
+      tags:
+        - user
+      summary: Confirm email verification
+      description: |-
+        Confirm a user has verified their email address.
+
+        Requires `confirm-email` scope.
+      operationId: confirmEmailVerification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Verified email address.
+                  format: email
+                  example: jdoe@example.com
+        required: false
+      responses:
+        204:
+          description: No Content
+          content: {}
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              'http://sandbox-api.example.com/v1/users/email' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "email": "jdoe@example.com"
+              }'
+    post:
+      tags:
+        - user
+      summary: Validate email
+      description: |-
+        Check if a user exists with given email.
+
+        Requires `validate-email` scope.
+      operationId: validateEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jdoe@example.com
+        required: false
+      responses:
+        204:
+          description: No Content
+          content: {}
+      # security:
+      # - password_grant:
+      #   - validate-email
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X POST \
+              http://sandbox-api.example.com/v1/users/email \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "email": "jdoe@example.com"
+              }'
+  /users/password:
+    put:
+      tags:
+        - user
+      summary: Update password
+      description: |-
+        Update your <strong>own</strong> password.
+
+        \* This will invalidate all existing user access tokens.
+
+        See <a href='#operation/resetPassword'>reset password</a>.
+      operationId: updatePassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - new_password
+              - new_password_confirmation
+              - password
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: Existing user account password.
+                  example: N%x/6j^H
+                new_password:
+                  pattern: (?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$
+                  type: string
+                  description: |-
+                    New user account password. Having at least;
+                    + 8 characters,
+                    + an upper case letter,
+                    + a lower case letter,
+                    + a number and,
+                    + a symbol.
+                  example: Gm=Pm5^(
+                new_password_confirmation:
+                  type: string
+                  description: New password confirmation.
+                  example: Gm=Pm5^(
+        required: false
+      responses:
+        204:
+          description: No Content
+          content: {}
+      x-code-samples:
+      - lang: CURL
+        source: |-
+          curl -X PUT \
+            'http://sandbox-api.example.com/v1/users/password' \
+            -H 'Accept: application/json' \
+            -H 'Authorization: Bearer {access-token}' \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "password": "N:x/6j^H",
+              "new_password": "Gm=Pm5^(",
+              "new_password_confirmation": "Gm=Pm5^(",
+            }'
+    post:
+      tags:
+        - user
+      summary: Confirm password
+      description: Confirm your <strong>own</strong> password.
+      operationId: confirmPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - password
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: User account password.
+                  example: N%x/6j^H
+        required: false
+      responses:
+        204:
+          description: No Content
+          content: {}
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X POST \
+              'http://sandbox-api.example.com/v1/users/password' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "password": "N%x/6j^H"
+              }'
+  /users/password/reset:
+    put:
+      tags:
+        - user
+      summary: Reset password
+      description: |-
+        Reset password on behalf of the user.
+
+        Requires `reset-password` scope.
+
+        \* This will invalidate all existing user access tokens.
+
+        See <a href='#operation/updatePassword'>update password</a>.
+      operationId: resetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+                - password
+                - password_confirmation
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Email for account to reset passport.
+                  format: email
+                  example: jdoe@example.com
+                email_verified_at:
+                  type: string
+                  description: |-
+                    When a user verified their email.
+                    Normally, if password reset was via email, the email is verified implicitly.
+                  format: date-time
+                password:
+                  pattern: (?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$
+                  type: string
+                  description: |-
+                    New user account password. Having at least;
+                    + 8 characters,
+                    + an upper case letter,
+                    + a lower case letter,
+                    + a number and,
+                    + a symbol.
+                  example: Gm=Pm5^(
+                password_confirmation:
+                  type: string
+                  description: Password confirmation.
+                  example: Gm=Pm5^(
+        required: false
+      responses:
+        204:
+          description: No Content
+          content: {}
+      # security:
+      # - password_grant:
+      #   - reset-password
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              'http://sandbox-api.example.com/v1/users/password/reset' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "email": "jdoe@example.com",
+                "password": "Gm%Pm5^(",
+                "password_confirmation": "Gm%Pm5^("
+              }'
+  /users/{user}:
+    get:
+      tags:
+        - user
+      summary: Get user
+      description: |-
+        Requires `view users` permission.
+
+        User's can view their own regardless.
+      operationId: getUser
+      parameters:
+        - name: user
+          in: path
+          description: <a href="#operation/getUsers">User</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/UserModel'
+                  - properties:
+                      role:
+                        $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              http://sandbox-api.example.com/v1/users/{user} \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+    put:
+      tags:
+        - user
+      summary: Update user
+      description: |-
+        Requires `update users` permission.
+
+        Can't update a user's password.
+
+        See <a href='#operation/updatePassword'>update user password</a>
+      operationId: updateUser
+      parameters:
+        - name: user
+          in: path
+          description: <a href="#operation/getUsers">User</a>
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/UserModel'
+                - properties:
+                    email:
+                      maxLength: 100
+                      type: string
+                      description: |-
+                        Email address.\
+                        If changed, user must verify new email address.
+                        See <a href='#operation/confirmEmailVerification'>confirm email verification.</a>
+                      format: email
+                      example: jdoe@example.com
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/UserModel'
+                  - properties:
+                      role:
+                        $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              http://sandbox-api.example.com/v1/users/{user} \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "name": "John Doe",
+                "email": "jdoe@example.com",
+                "role_id": 1
+              }'
+    delete:
+      tags:
+        - user
+      summary: Delete user
+      description: |-
+        <strong>Permanently</strong> remove user from database.
+
+        Requires `force-delete users` permission, and the user must be revoked before he/she can be deleted.
+
+        See <a href='#operation/revokeUser'>revoke user</a>
+      operationId: deleteUser
+      parameters:
+        - name: user
+          in: path
+          description: <a href="#operation/getUsers">User</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: No Content
+          content: {}
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X DELETE \
+              'http://sandbox-api.example.com/v1/users/{user}' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+  /users/{user}/revoke:
+    put:
+      tags:
+        - user
+      summary: Revoke user
+      description: |-
+        Requires `soft-delete users` permission.
+
+        Different from <a href='#operation/deleteUser'>delete user</a>.
+      operationId: revokeUser
+      parameters:
+        - name: user
+          in: path
+          description: <a href="#operation/getUsers">User</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/UserModel'
+                  - properties:
+                      deleted_at:
+                        example: '2021-03-02T16:02:28.352Z'
+                      role:
+                        $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              'http://sandbox-api.example.com/v1/users/{user}/revoke' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+  /users/{user}/restore:
+    put:
+      tags:
+        - user
+      summary: Restore user
+      description: |-
+        <strong>Reinstate</strong> previously <strike>revoked</strike> user.
+
+        Requires `restore users` permission.
+
+        See <a href='#operation/revokeUser'>revoke user</a>.
+      operationId: restoreUser
+      parameters:
+        - name: user
+          in: path
+          description: <a href="#operation/getUsers">User</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/UserModel'
+                  - properties:
+                      role:
+                        $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              'http://sandbox-api.example.com/v1/users/{user}/restore' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+
+  /permissions:
+    get:
+      tags:
+        - permission
+      summary: Get permissions
+      description: Requires `view-any permissions` permission.
+      operationId: getPermissions
       parameters:
         - name: limit
           in: query
-          description: How many items to return at one time (max 100)
-          required: false
           schema:
             type: integer
-            format: int32
+            minimum: 1
+            maximum: 100
+            default: 10
       responses:
-        '200':
-          description: A paged array of pets
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
+        206:
+          description: Partial Content
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Pets"
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
+                allOf:
+                  - $ref: '#/components/schemas/206PaginationResponse'
+                  - properties:
+                      data:
+                        type: array
+                        description: Permissions
+                        items:
+                          $ref: '#/components/schemas/PermissionModel'
+                      first_page_url:
+                        example: https://api.example.com/v1/permissions?page=1
+                      path:
+                        example: https://api.example.com/v1/permissions
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              https://api.example.com/v1/permissions \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
     post:
-      summary: Create a pet
-      operationId: createPets
       tags:
-        - pets
+        - permission
+      summary: Register permission
+      description: Requires `create permissions` permission.
+      operationId: registerPermission
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionModel'
       responses:
-        '201':
-          description: Null response
-        default:
-          description: unexpected error
+        201:
+          description: Created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-  /pets/{petId}:
+                $ref: '#/components/schemas/PermissionModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X POST \
+              https://api.example.com/v1/permissions \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "action": "view-any",
+                "resource": "users",
+                "description": "Manage users."
+              }'
+  /permissions/{permission}:
     get:
-      summary: Info for a specific pet
-      operationId: showPetById
       tags:
-        - pets
+        - permission
+      summary: Get permission
+      description: Requires `view permissions` permission.
+      operationId: getPermission
       parameters:
-        - name: petId
+        - name: permission
           in: path
+          description: <a href="#operation/getPermissions">Permission ID</a>
           required: true
-          description: The id of the pet to retrieve
           schema:
-            type: string
+            type: integer
       responses:
-        '200':
-          description: Expected response to a valid request
+        200:
+          description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Pet"
-        default:
-          description: unexpected error
+                $ref: '#/components/schemas/PermissionModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              https://api.example.com/v1/permissions/{permission} \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+    put:
+      tags:
+        - permission
+      summary: Update permission
+      description: Requires `update permissions` permission.
+      operationId: updatePermission
+      parameters:
+        - name: permission
+          in: path
+          description: <a href="#operation/getPermissions">Permission ID</a>
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionModel'
+      responses:
+        200:
+          description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                $ref: '#/components/schemas/PermissionModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              https://api.example.com/v1/permissions/{permission} \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "action": "view-any",
+                "resource": "users",
+                "description": "Manage users."
+              }'
+    delete:
+      tags:
+        - permission
+      summary: Delete permission
+      description: |-
+        Permanently delete the specific permission.
+
+        Requires `delete permissions` permission.
+      operationId: deletePermission
+      parameters:
+        - name: permission
+          in: path
+          description: <a href="#operation/getPermissions">Permission ID</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: No Content
+          content: {}
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X DELETE \
+              'https://api.example.com/v1/permissions/{permission}' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+  /permissions/{permission}/roles:
+    get:
+      tags:
+        - permission
+      summary: Get roles granted this permission.
+      description: Requires `view-any roles` permission.
+      operationId: getPermissionRoles
+      parameters:
+        - name: permission
+          in: path
+          description: <a href="#operation/getPermissions">Permission ID</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PermissionModel'
+                  - properties:
+                      roles:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              'https://api.example.com/v1/permissions/{permission}/roles' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+
+  /roles:
+    get:
+      tags:
+        - role
+      summary: Get roles
+      description: Requires `view-any roles` permission.
+      operationId: getRoles
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        206:
+          description: Partial Content
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/206PaginationResponse'
+                  - properties:
+                      data:
+                        type: array
+                        description: Roles
+                        items:
+                          $ref: '#/components/schemas/RoleModel'
+                      first_page_url:
+                        example: https://api.example.com/v1/roles?page=1
+                      path:
+                        example: https://api.example.com/v1/roles
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              https://api.example.com/v1/roles \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+    post:
+      tags:
+        - role
+      summary: Register role
+      description: Requires `create roles` permission.
+      operationId: registerRole
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleModel'
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X POST \
+              https://api.example.com/v1/roles \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "name": "Sys Admin",
+                "description": "System Administrator"
+              }'
+  /roles/{role}:
+    get:
+      tags:
+        - role
+      summary: Get role
+      description: |-
+        Requires `view roles` permission.
+
+        Users can view their role regardless.
+      operationId: getRole
+      parameters:
+        - name: role
+          in: path
+          description: <a href="#operation/getRoles">Role ID</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              https://api.example.com/v1/roles/{role} \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+    put:
+      tags:
+        - role
+      summary: Update role
+      description: Requires `update roles` permission.
+      operationId: updateRole
+      parameters:
+        - name: role
+          in: path
+          description: <a href="#operation/getRoles">Role ID</a>
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleModel'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              https://api.example.com/v1/roles/{role} \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "name": "Sys Admin",
+                "description": "System Administrator"
+              }'
+    delete:
+      tags:
+        - role
+      summary: Delete role
+      description: |-
+        <strong>Permanently</strong> removes the specified role from storage.
+
+        Requires `force-delete roles` permission.
+
+        Returns `404 Not Found` for <a href='#operation/revokeRole'>non-revoked</a> roles
+      operationId: deleteRole
+      parameters:
+        - name: role
+          in: path
+          description: <a href="#operation/getRoles">Role ID</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: No Content
+          content: {}
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X DELETE \
+              'https://api.example.com/v1/roles/{role}' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+  /roles/{role}/permissions:
+    get:
+      tags:
+        - role
+      summary: Get permissions granted to the role
+      description: |-
+        Get all permissions available to this role; granted or not.
+
+        Requires `sync-permissions roles` permission.
+      operationId: getRolePermissions
+      parameters:
+        - name: role
+          in: path
+          description: <a href="#operation/getRoles">Role ID</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RoleModel'
+                  - properties:
+                      permissions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            action:
+                              type: string
+                              example: view-any
+                            resource:
+                              type: string
+                              example: users
+                            granted:
+                              type: boolean
+                              example: true
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              https://api.example.com/v1/roles/{role}/permissions \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+  /roles/{role}/permissions/sync:
+    put:
+      tags:
+        - role
+      summary: Sync permissions granted to the role
+      description: |-
+        Dettach, re-attach permissions to a role.
+
+        Requires `sync-permissions roles` permission.
+      operationId: syncRolePermissions
+      parameters:
+        - name: role
+          in: path
+          description: <a href="#operation/getRoles">Role ID</a>
+          required: true
+          schema:
+            type: integer
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+              - permissions
+              type: object
+              properties:
+                permissions:
+                  type: array
+                  description: |-
+                    Granted <a href="#operation/getPermissions">permissions'</a> IDs
+                  items:
+                    type: integer
+                    example: 1
+        required: false
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RoleModel'
+                  - properties:
+                      permissions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            action:
+                              type: string
+                              example: view-any
+                            resource:
+                              type: string
+                              example: users
+                            granted:
+                              type: boolean
+                              example: true
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              https://api.example.com/v1/roles/{role}/permissions/sync \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}' \
+              -d '{
+                "permissions": [
+                  1
+                ]
+              }'
+  /roles/{role}/revoke:
+    put:
+      tags:
+        - role
+      summary: Revoke role
+      description: |-
+        Requires `soft-delete roles` permission.
+
+        Different from <a href='#operation/deleteRole'>delete role</a>.
+      operationId: revokeRole
+      parameters:
+        - name: role
+          in: path
+          description: <a href="#operation/getRoles">Role ID</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/RoleModel'
+                  - properties:
+                      deleted_at:
+                        example: '2021-03-02T16:02:28.352Z'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              'https://api.example.com/v1/roles/{role}/revoke' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+  /roles/{role}/restore:
+    put:
+      tags:
+        - role
+      summary: Restore role
+      description: |-
+        <strong>Reinstate</strong> previously <strike>revoked</strike> role.
+
+        Requires `restore roles` permission.
+
+        See <a href='#operation/revokeUser'>revoke role</a>.
+      operationId: restoreRole
+      parameters:
+        - name: role
+          in: path
+          description: <a href="#operation/getRoles">Role ID</a>
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X PUT \
+              'https://api.example.com/v1/roles/{role}/restore' \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
+
 components:
   schemas:
-    Pet:
+    # Models
+    TokenModel:
+      title: Token
+      type: object
+      required:
+        - token_type
+        - expires_in
+        - access_token
+      properties:
+        token_type:
+          type: string
+          default: Bearer
+        expires_in:
+          type: integer
+          example: 3600
+        access_token:
+          type: string
+          example: eyJ0eXAiOiJKV1QiLCJhbGcNGY4ODNhMzRmMTM0NTdmMTkyMGNlY...
+        refresh_token:
+          type: string
+          description: \* Missing on client-credentials token.
+          nullable: true
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6Ijk4OGM1...
+
+    UserModel:
+      title: User
+      type: object
+      required:
+        - id
+        # - role_id
+        - name
+        - email
+      properties:
+        id:
+          readOnly: true
+          type: integer
+          example: 1
+        role_id:
+          type: integer
+          description: <a href="#tag/role_model">Role</a>
+          example: 1
+        name:
+          type: string
+          maxLength: 25
+          description: Full name
+          example: John Doe
+        email:
+          type: string
+          description: Email address - unique.
+          format: email
+          example: jdoe@example.com
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          readOnly: true
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          readOnly: true
+          type: string
+          format: date-time
+          nullable: true
+        deleted_at:
+          readOnly: true
+          type: string
+          format: date-time
+          example: null
+          nullable: true
+    PermissionModel:
+      title: Permission
+      type: object
+      required:
+        - id
+        - action
+        - resource
+      properties:
+        id:
+          readOnly: true
+          type: integer
+          example: 1
+        action:
+          type: string
+          maxLength: 25
+          example: view-any
+        resource:
+          type: string
+          maxLength: 100
+          example: users
+        description:
+          type: string
+          maxLength: 100
+          nullable: true
+          example: Manage users
+        created_at:
+          readOnly: true
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          readOnly: true
+          type: string
+          format: date-time
+          nullable: true
+    RoleModel:
+      title: Role
       type: object
       required:
         - id
         - name
       properties:
         id:
+          readOnly: true
           type: integer
-          format: int64
+          example: 1
         name:
+          maxLength: 50
           type: string
-        tag:
+          example: Sys Admin
+        description:
+          maxLength: 100
           type: string
-    Pets:
-      type: array
-      items:
-        $ref: "#/components/schemas/Pet"
-    Error:
+          nullable: true
+          example: System Administrator
+        created_at:
+          readOnly: true
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          readOnly: true
+          type: string
+          format: date-time
+          nullable: true
+        deleted_at:
+          readOnly: true
+          type: string
+          format: date-time
+          example: null
+          nullable: true
+
+    # HTTP Partial Content Response
+    206PaginationResponse:
       type: object
-      required:
-        - code
-        - message
       properties:
-        code:
+        current_page:
           type: integer
-          format: int32
+          example: 1
+        data:
+          type: array
+          items:
+            type: object
+        first_page_url:
+          type: string
+          example: https://api.example.com/v1/resource?page=1
+        from:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 1
+        last_page_url:
+          type: integer
+        next_page_url:
+          type: string
+          example: null
+        path:
+          type: string
+          example: https://api.example.com/v1/resource
+        per_page:
+          type: integer
+          example: 10
+        prev_page_url:
+          type: string
+          example: null
+        to:
+          type: integer
+          example: 1
+        total:
+          type: integer
+          example:
+
+    # HTTP Response Errors
+    401HttpResponse:
+      type: object
+      properties:
         message:
           type: string
+          example: Unauthenticated.
+    403HttpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Insufficient permission.
+    404HttpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Not found.
+    405HttpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The POST method is not supported for this route.
+    422HttpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          properties:
+            email:
+              type: array
+              items:
+                type: string
+                example: The email field is required.
+    429HttpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: 'Exceeded API request rate limit. Default: throttle:60,1'
+    500HttpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Something went wrong.
+
+  securitySchemes:
+    client_credentials_grant:
+      type: oauth2
+      description: Get access to data while protecting your account credentials.
+      flows:
+        clientCredentials:
+          tokenUrl: http://sandbox-api.example.com/v1/oauth/token
+          scopes: {}
+    authorization_code_grant:
+      type: oauth2
+      description: Get access to data while protecting your account credentials.
+      flows:
+        authorizationCode:
+          authorizationUrl: http://sandbox-api.example.com/v1/oauth/authorize
+          tokenUrl: http://sandbox-api.example.com/v1/oauth/token
+          scopes:
+            view-email: Access user's email address.
+    password_grant:
+      type: oauth2
+      description: First party apps only.
+      flows:
+        password:
+          tokenUrl: http://sandbox-api.example.com/v1/oauth/token
+          scopes:
+            authenticate-user: Login, logout a user.
+            confirm-email: Update a user's email as verified.
+            reset-password: Change user's forgotten password.
+            validate-email: Check if a user account exists for given email.
