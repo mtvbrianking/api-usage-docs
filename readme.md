@@ -1,6 +1,10 @@
-# [API (Spec) Usage Documentation](https://mtvbrianking.github.io/api-usage-docs)
+# API Usage Documentation
 
 [![Deploy](https://github.com/mtvbrianking/api-usage-docs/workflows/deploy/badge.svg)](https://github.com/mtvbrianking/api-usage-docs/actions?query=workflow:deploy)
+
+[![Redoc](https://img.shields.io/badge/redoc-docs-success)](https://mtvbrianking.github.io/api-usage-docs)
+
+[![Swagger](https://img.shields.io/badge/swagger-docs-success)](https://mtvbrianking.github.io/api-usage-docs/swagger)
 
 ## Setup
 
