@@ -370,14 +370,33 @@ paths:
       description: |-
         Requires `view-any` permission on `users` module.
         
-        Filters: _name, email_
+        Read more about [dataTables server-side processing](https://datatables.net/manual/server-side)
         
-        Scopes: _role_id, email_verified_at, deleted_at_
-        
-        Sortable: _role_id, name, email, email_verified_at, deleted_at_
-        
-        Pagination: _1 to 100_
+        | columns\[i]\[data]        | columns\[i]\[name]  | searchable | orderable |
+        | ----------------------- | ----------------- | :--------: | :-------: |
+        | users.id                | id                | true       | true      |
+        | users.role_id           | role_id           | true       | true      |
+        | users.name              | name              | true       | true      |
+        | users.email             | email             | true       | true      |
+        | users.email_verified_at | email_verified_at | true       | true      |
+        | users.created_at        | created_at        | true       | true      |
+        | users.updated_at        | updated_at        | true       | true      |
+        | users.deleted_at        | deleted_at        | true       | true      |
       operationId: getUsersDatatables
+      parameters:
+        - $ref: '#/components/parameters/dt-draw'
+        - $ref: '#/components/parameters/dt-start'
+        - $ref: '#/components/parameters/dt-length'
+        - $ref: '#/components/parameters/dt-search-value'
+        - $ref: '#/components/parameters/dt-search-regex'
+        - $ref: '#/components/parameters/dt-order-column'
+        - $ref: '#/components/parameters/dt-order-dir'
+        - $ref: '#/components/parameters/dt-column-data'
+        - $ref: '#/components/parameters/dt-column-name'
+        - $ref: '#/components/parameters/dt-columns-searchable'
+        - $ref: '#/components/parameters/dt-columns-orderable'
+        - $ref: '#/components/parameters/dt-columns-search-value'
+        - $ref: '#/components/parameters/dt-columns-search-regex'        
       responses:
         206:
           description: Partial Content
@@ -1447,7 +1466,6 @@ components:
           description: \* Missing on client-credentials token.
           nullable: true
           example: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6Ijk4OGM1...
-
     UserModel:
       title: User
       type: object
@@ -1566,21 +1584,37 @@ components:
           format: date-time
           example: null
           nullable: true
-
+    
     # HTTP Partial Content Responses
     206DatatablesResponse:
+      # description: |-
+      #   [Read more...](https://datatables.net/manual/server-side)
       type: object
       properties:
         draw:
+          description: |-
+            The draw counter that this object is a response to - from the draw parameter sent as part of the data request.
           type: integer
           example: 1
         recordsTotal:
+          description: |-
+            Total records, before filtering 
+            
+            i.e. the total number of records in the database
           type: integer
           example: 1
         recordsFiltered:
+          description: |-
+            Total records, after filtering 
+            
+            i.e. the total number of records after filtering has been applied - not just the number of records being returned for this page of data.
           type: integer
           example: 1
         data:
+          description: |-
+            The data to be displayed in the table. 
+            
+            This is an array of data source objects, one for each row, which will be used by DataTables.
           type: array
           items:
             type: object
@@ -1675,6 +1709,121 @@ components:
         message:
           type: string
           example: Something went wrong.
+  
+  #-------------------------------
+  # Reusable operation parameters
+  #-------------------------------
+  parameters:
+    dt-draw:
+      name: draw
+      in: query
+      description: |- 
+        Draw counter
+      required: false
+      schema:
+        type: integer
+    dt-start:
+      name: start
+      in: query
+      description: |-
+        Paging first record indicator
+      required: false
+      schema:
+        type: integer
+    dt-length:
+      name: length
+      in: query
+      description: |-
+        Number of records that the table can display in the current draw
+      required: false
+      schema:
+        type: integer
+    dt-search-value:
+      name: search[value]
+      in: query
+      description: |-
+        Global search value. To be applied to all columns which have `searchable` as `true`.
+      required: false
+      schema:
+        type: string
+    dt-search-regex:
+      name: search[regex]
+      in: query
+      description: |- 
+        `true` if the global filter should be treated as a regular expression for advanced searching, `false` otherwise. 
+      required: false
+      schema:
+        type: boolean
+    dt-order-column:
+      name: order[i][column]
+      in: query
+      description: |-
+        Column to which ordering should be applied.
+      required: false
+      schema:
+        type: integer
+    dt-order-dir:
+      name: order[i][dir]
+      in: query
+      description: |-
+        Ordering direction for this column.
+      required: false
+      schema:
+        enum:
+          - asc
+          - desc
+    dt-column-data:
+      name: columns[i][data]
+      in: query
+      description: |-
+        Column's data source
+      required: false
+      schema:
+        type: string
+    dt-column-name:
+      name: columns[i][name]
+      in: query
+      description: |-
+        Column's name
+      required: false
+      schema:
+        type: string
+    dt-columns-searchable:
+      name: columns[i][searchable]
+      in: query
+      description: |-
+        Flag to indicate if this column is searchable (`true`) or not (`false`).
+      required: false
+      schema:
+        type: boolean
+    dt-columns-orderable:
+      name: columns[i][orderable]
+      in: query
+      description: |-
+        Flag to indicate if this column is orderable (`true`) or not (`false`).
+      required: false
+      schema:
+        type: boolean
+    dt-columns-search-value:
+      name: columns[i][search][value]
+      in: query
+      description: |-
+        Search value to apply to this specific column.
+      required: false
+      schema:
+        type: string
+    dt-columns-search-regex:
+      name: columns[i][search][regex]
+      in: query
+      description: |-
+        Flag to indicate if the search term for this column should be treated as regular expression (`true`) or not (`false`). 
+      required: false
+      schema:
+        type: boolean
+
+  # requestBodies:
+  
+  # responses:
 
   securitySchemes:
     auth:
