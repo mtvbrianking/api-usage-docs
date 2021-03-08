@@ -16,10 +16,15 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
+  - url: http://localhost:8000/v1
+    description: Development
   - url: http://sandbox-api.example.com/v1
     description: Testing
   - url: http://api.example.com/v1
     description: Production
+    
+security:
+  - auth: []
 
 tags:
   - name: token
@@ -48,6 +53,10 @@ tags:
     description: |
       <SchemaDefinition schemaRef="#/components/schemas/RoleModel"/>
 
+  - name: 206_datatables_response
+    x-displayName: 206 Datatables Response
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/206DatatablesResponse"/>
   - name: 206_pagination_response
     x-displayName: 206 Pagination Response
     description: |
@@ -97,6 +106,7 @@ x-tagGroups:
       - role_model
   - name: Responses
     tags:
+      - 206_datatables_response
       - 206_pagination_response
   - name: Error Responses
     tags:
@@ -115,6 +125,7 @@ paths:
         - token
       summary: Request OAuth token
       operationId: requestToken
+      security: []
       requestBody:
         content:
           application/json:
@@ -177,10 +188,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenModel'
-      security:
-        - password_grant: []
-        - client_credentials_grant: []
-        - authorization_code_grant: []
       x-code-samples:
         - lang: CURL - Password
           source: |-
@@ -193,7 +200,7 @@ paths:
                 "client_id": "3102c90b-1936-4968-af9e-3701bcc6147c",
                 "client_secret": "OZHF4AuWWvMY0rKC2VWwEMlvobJ4GfCgGKopdadQ",
                 "username": "jdoe@example.com",
-                "password": "O7SQx63Y12iwaWHQ"
+                "password": "You came 1st!"
               }'
         - lang: CURL - Client Credentials
           source: |-
@@ -215,11 +222,24 @@ paths:
       description: Requires `view-any users` permission.
       operationId: getUsers
       parameters:
-        - name: paginate
-          in: query
-          schema:
-            type: boolean
-            default: true
+        # https://github.com/OAI/OpenAPI-Specification/issues/1706 
+        # - name: filters
+        #   in: query
+        #   schema:
+        #     type: object
+        #     additionalProperties: false
+        #     properties:
+        #       things:
+        #         description: ID of thing
+        #         type: string
+        # - in: query
+        #   name: ids
+        #   description: One or more IDs
+        #   required: true
+        #   schema:
+        #     type: array
+        #     items:
+        #       type: integer
         - name: limit
           in: query
           schema:
@@ -297,6 +317,9 @@ paths:
       summary: Authenticate user
       description: Requires `authenticate-user` scope.
       operationId: authenticateUser
+      security:
+        - auth:
+          - authenticate-user
       requestBody:
         content:
           application/json:
@@ -312,7 +335,7 @@ paths:
                   example: jdoe@example.com
                 password:
                   type: string
-                  example: Gm%Pm5^(
+                  example: "You came 1st!"
         required: false
       responses:
         200:
@@ -327,9 +350,6 @@ paths:
                         $ref: '#/components/schemas/RoleModel'
                       token:
                         $ref: '#/components/schemas/TokenModel'
-      # security:
-      #   - password_grant:
-      #     - authenticate-user
       x-code-samples:
         - lang: CURL
           source: |-
@@ -340,8 +360,45 @@ paths:
               -H 'Content-Type: application/json' \
               -d '{
                 "email": "jdoe@example.com",
-                "password": "Gm%Pm5^("
+                "password": "You came 1st!"
               }'
+  /users/datatables:
+    get:
+      tags:
+        - user
+      summary: Get users (for jQuery datatables)
+      description: |-
+        Requires `view-any` permission on `users` module.
+        
+        Filters: _name, email_
+        
+        Scopes: _role_id, email_verified_at, deleted_at_
+        
+        Sortable: _role_id, name, email, email_verified_at, deleted_at_
+        
+        Pagination: _1 to 100_
+      operationId: getUsersDatatables
+      responses:
+        206:
+          description: Partial Content
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/206DatatablesResponse'
+                  - properties:
+                      data:
+                        type: array
+                        description: Users
+                        items:
+                          $ref: '#/components/schemas/UserModel'
+      x-code-samples:
+        - lang: CURL
+          source: |-
+            curl -X GET \
+              http://sandbox-api.example.com/v1/users/datatables \
+              -H 'Accept: application/json' \
+              -H 'Authorization: Bearer {access-token}'
   /users/deauth:
     post:
       tags:
@@ -352,15 +409,13 @@ paths:
 
         Requires `authenticate-user` scope.
       operationId: deauthenticateUser
+      security:
+        - auth:
+          - authenticate-user
       responses:
         204:
           description: No Content
           content: {}
-      # security:
-      #   - client_credentials_grant:
-      #     - authenticate-user
-      #   - password_grant:
-      #     - authenticate-user
       x-code-samples:
         - lang: CURL
           source: |-
@@ -372,12 +427,15 @@ paths:
     put:
       tags:
         - user
-      summary: Confirm email verification
+      summary: Verify user email.
       description: |-
-        Confirm a user has verified their email address.
+        Confirm that a user has verified their email address.
 
-        Requires `confirm-email` scope.
-      operationId: confirmEmailVerification
+        Requires `verify-email` scope.
+      operationId: verifyEmail
+      security:
+        - auth:
+          - verify-email
       requestBody:
         content:
           application/json:
@@ -410,12 +468,15 @@ paths:
     post:
       tags:
         - user
-      summary: Validate email
+      summary: Check email
       description: |-
-        Check if a user exists with given email.
+        Check if a user exists in the system with given email.
 
-        Requires `validate-email` scope.
-      operationId: validateEmail
+        Requires `check-email` scope.
+      operationId: checkEmail
+      security:
+        - auth:
+          - check-email
       requestBody:
         content:
           application/json:
@@ -428,14 +489,10 @@ paths:
                   type: string
                   format: email
                   example: jdoe@example.com
-        required: false
       responses:
         204:
           description: No Content
           content: {}
-      # security:
-      # - password_grant:
-      #   - validate-email
       x-code-samples:
         - lang: CURL
           source: |-
@@ -472,7 +529,7 @@ paths:
                 password:
                   type: string
                   description: Existing user account password.
-                  example: N%x/6j^H
+                  example: "You came 1st!"
                 new_password:
                   pattern: (?=^.{8,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$
                   type: string
@@ -483,11 +540,11 @@ paths:
                     + a lower case letter,
                     + a number and,
                     + a symbol.
-                  example: Gm=Pm5^(
+                  example: "Just 2 beers?"
                 new_password_confirmation:
                   type: string
                   description: New password confirmation.
-                  example: Gm=Pm5^(
+                  example: "Just 2 beers?"
         required: false
       responses:
         204:
@@ -502,9 +559,9 @@ paths:
             -H 'Authorization: Bearer {access-token}' \
             -H 'Content-Type: application/json' \
             -d '{
-              "password": "N:x/6j^H",
-              "new_password": "Gm=Pm5^(",
-              "new_password_confirmation": "Gm=Pm5^(",
+              "password": "You came 1st!"
+              "new_password": "Just 2 beers?",
+              "new_password_confirmation": "Just 2 beers?",
             }'
     post:
       tags:
@@ -523,7 +580,7 @@ paths:
                 password:
                   type: string
                   description: User account password.
-                  example: N%x/6j^H
+                  example: "You came 1st!"
         required: false
       responses:
         204:
@@ -538,7 +595,7 @@ paths:
               -H 'Authorization: Bearer {access-token}' \
               -H 'Content-Type: application/json' \
               -d '{
-                "password": "N%x/6j^H"
+                "password": "You came 1st!"
               }'
   /users/password/reset:
     put:
@@ -554,6 +611,9 @@ paths:
 
         See <a href='#operation/updatePassword'>update password</a>.
       operationId: resetPassword
+      security:
+        - auth:
+          - reset-password
       requestBody:
         content:
           application/json:
@@ -585,19 +645,16 @@ paths:
                     + a lower case letter,
                     + a number and,
                     + a symbol.
-                  example: Gm=Pm5^(
+                  example: "You came 1st!"
                 password_confirmation:
                   type: string
                   description: Password confirmation.
-                  example: Gm=Pm5^(
+                  example: "You came 1st!"
         required: false
       responses:
         204:
           description: No Content
           content: {}
-      # security:
-      # - password_grant:
-      #   - reset-password
       x-code-samples:
         - lang: CURL
           source: |-
@@ -608,8 +665,8 @@ paths:
               -H 'Content-Type: application/json' \
               -d '{
                 "email": "jdoe@example.com",
-                "password": "Gm%Pm5^(",
-                "password_confirmation": "Gm%Pm5^("
+                "password": "You came 1st!"
+                "password_confirmation": "You came 1st!"
               }'
   /users/{user}:
     get:
@@ -1510,7 +1567,23 @@ components:
           example: null
           nullable: true
 
-    # HTTP Partial Content Response
+    # HTTP Partial Content Responses
+    206DatatablesResponse:
+      type: object
+      properties:
+        draw:
+          type: integer
+          example: 1
+        recordsTotal:
+          type: integer
+          example: 1
+        recordsFiltered:
+          type: integer
+          example: 1
+        data:
+          type: array
+          items:
+            type: object
     206PaginationResponse:
       type: object
       properties:
@@ -1604,30 +1677,22 @@ components:
           example: Something went wrong.
 
   securitySchemes:
-    client_credentials_grant:
+    auth:
       type: oauth2
-      description: Get access to data while protecting your account credentials.
-      flows:
-        clientCredentials:
-          tokenUrl: http://sandbox-api.example.com/v1/oauth/token
-          scopes: {}
-    authorization_code_grant:
-      type: oauth2
-      description: Get access to data while protecting your account credentials.
       flows:
         authorizationCode:
           authorizationUrl: http://sandbox-api.example.com/v1/oauth/authorize
           tokenUrl: http://sandbox-api.example.com/v1/oauth/token
           scopes:
             view-email: Access user's email address.
-    password_grant:
-      type: oauth2
-      description: First party apps only.
-      flows:
+        clientCredentials:
+          tokenUrl: http://sandbox-api.example.com/v1/oauth/token
+          scopes: 
+            authenticate-user: Login, logout a user.
+            check-email: Check if a user exists with the specified.
+            reset-password: Change user's forgotten password.
+            verify-email: Update a user's email as verified.
         password:
           tokenUrl: http://sandbox-api.example.com/v1/oauth/token
-          scopes:
-            authenticate-user: Login, logout a user.
-            confirm-email: Update a user's email as verified.
-            reset-password: Change user's forgotten password.
-            validate-email: Check if a user account exists for given email.
+          scopes: 
+            "*": All available scopes 
