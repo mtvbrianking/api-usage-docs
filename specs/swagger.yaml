@@ -22,7 +22,7 @@ servers:
     description: Testing
   - url: http://api.example.com/v1
     description: Production
-    
+
 security:
   - auth: []
 
@@ -222,24 +222,6 @@ paths:
       description: Requires `view-any users` permission.
       operationId: getUsers
       parameters:
-        # https://github.com/OAI/OpenAPI-Specification/issues/1706 
-        # - name: filters
-        #   in: query
-        #   schema:
-        #     type: object
-        #     additionalProperties: false
-        #     properties:
-        #       things:
-        #         description: ID of thing
-        #         type: string
-        # - in: query
-        #   name: ids
-        #   description: One or more IDs
-        #   required: true
-        #   schema:
-        #     type: array
-        #     items:
-        #       type: integer
         - name: limit
           in: query
           schema:
@@ -268,7 +250,7 @@ paths:
       x-code-samples:
         - lang: CURL
           source: |-
-            curl -X GET \
+            curl -X GET -G \
               http://sandbox-api.example.com/v1/users \
               -H 'Accept: application/json' \
               -H 'Authorization: Bearer {access-token}'
@@ -369,19 +351,19 @@ paths:
       summary: Get users (for jQuery datatables)
       description: |-
         Requires `view-any` permission on `users` module.
-        
+
         Read more about [dataTables server-side processing](https://datatables.net/manual/server-side)
-        
-        | columns\[i]\[data]        | columns\[i]\[name]  | searchable | orderable |
-        | ----------------------- | ----------------- | :--------: | :-------: |
-        | users.id                | id                | true       | true      |
-        | users.role_id           | role_id           | true       | true      |
-        | users.name              | name              | true       | true      |
-        | users.email             | email             | true       | true      |
-        | users.email_verified_at | email_verified_at | true       | true      |
-        | users.created_at        | created_at        | true       | true      |
-        | users.updated_at        | updated_at        | true       | true      |
-        | users.deleted_at        | deleted_at        | true       | true      |
+
+        | columns\[i]\[data]      | columns\[i]\[name]  | searchable | orderable |
+        | ----------------------- | -----------------   | :--------: | :-------: |
+        | users.id                | id                  | true       | true      |
+        | users.role_id           | role_id             | true       | true      |
+        | users.name              | name                | true       | true      |
+        | users.email             | email               | true       | true      |
+        | users.email_verified_at | email_verified_at   | true       | true      |
+        | users.created_at        | created_at          | true       | true      |
+        | users.updated_at        | updated_at          | true       | true      |
+        | users.deleted_at        | deleted_at          | true       | true      |
       operationId: getUsersDatatables
       parameters:
         - $ref: '#/components/parameters/dt-draw'
@@ -396,7 +378,7 @@ paths:
         - $ref: '#/components/parameters/dt-columns-searchable'
         - $ref: '#/components/parameters/dt-columns-orderable'
         - $ref: '#/components/parameters/dt-columns-search-value'
-        - $ref: '#/components/parameters/dt-columns-search-regex'        
+        - $ref: '#/components/parameters/dt-columns-search-regex'
       responses:
         206:
           description: Partial Content
@@ -414,10 +396,47 @@ paths:
       x-code-samples:
         - lang: CURL
           source: |-
-            curl -X GET \
+            curl -X GET -G \
               http://sandbox-api.example.com/v1/users/datatables \
               -H 'Accept: application/json' \
-              -H 'Authorization: Bearer {access-token}'
+              -H 'Authorization: Bearer {access-token}' \
+              -d 'draw=1' \
+              -d 'start=0' \
+              -d 'length=10' \
+              -d 'search[value]=' \
+              -d 'search[regex]=false' \
+              -d 'columns[0][data]=users.id' \
+              -d 'columns[0][name]=id' \
+              -d 'columns[0][searchable]=true' \
+              -d 'columns[0][orderable]=true' \
+              -d 'columns[0][search][value]=' \
+              -d 'columns[0][search][regex]=false' \
+              -d 'columns[1][data]=users.name' \
+              -d 'columns[1][name]=name' \
+              -d 'columns[1][searchable]=true' \
+              -d 'columns[1][orderable]=true' \
+              -d 'columns[1][search][value]=' \
+              -d 'columns[1][search][regex]=false' \
+              -d 'columns[2][data]=users.email' \
+              -d 'columns[2][name]=email' \
+              -d 'columns[2][searchable]=true' \
+              -d 'columns[2][orderable]=true' \
+              -d 'columns[2][search][value]=' \
+              -d 'columns[2][search][regex]=false' \
+              -d 'columns[3][data]=users.email_verified_at' \
+              -d 'columns[3][name]=email_verified_at' \
+              -d 'columns[3][searchable]=true' \
+              -d 'columns[3][orderable]=true' \
+              -d 'columns[3][search][value]=' \
+              -d 'columns[3][search][regex]=false' \
+              -d 'columns[4][data]=users.deleted_at' \
+              -d 'columns[4][name]=deleted_at' \
+              -d 'columns[4][searchable]=true' \
+              -d 'columns[4][orderable]=true' \
+              -d 'columns[4][search][value]=' \
+              -d 'columns[4][search][regex]=false' \
+              -d 'order[0][column]=1' \
+              -d 'order[0][dir]=asc'
   /users/deauth:
     post:
       tags:
@@ -1584,7 +1603,7 @@ components:
           format: date-time
           example: null
           nullable: true
-    
+
     # HTTP Partial Content Responses
     206DatatablesResponse:
       # description: |-
@@ -1598,22 +1617,22 @@ components:
           example: 1
         recordsTotal:
           description: |-
-            Total records, before filtering 
-            
+            Total records, before filtering
+
             i.e. the total number of records in the database
           type: integer
           example: 1
         recordsFiltered:
           description: |-
-            Total records, after filtering 
-            
+            Total records, after filtering
+
             i.e. the total number of records after filtering has been applied - not just the number of records being returned for this page of data.
           type: integer
           example: 1
         data:
           description: |-
-            The data to be displayed in the table. 
-            
+            The data to be displayed in the table.
+
             This is an array of data source objects, one for each row, which will be used by DataTables.
           type: array
           items:
@@ -1709,7 +1728,7 @@ components:
         message:
           type: string
           example: Something went wrong.
-  
+
   #-------------------------------
   # Reusable operation parameters
   #-------------------------------
@@ -1717,7 +1736,7 @@ components:
     dt-draw:
       name: draw
       in: query
-      description: |- 
+      description: |-
         Draw counter
       required: false
       schema:
@@ -1749,8 +1768,8 @@ components:
     dt-search-regex:
       name: search[regex]
       in: query
-      description: |- 
-        `true` if the global filter should be treated as a regular expression for advanced searching, `false` otherwise. 
+      description: |-
+        `true` if the global filter should be treated as a regular expression for advanced searching, `false` otherwise.
       required: false
       schema:
         type: boolean
@@ -1816,13 +1835,13 @@ components:
       name: columns[i][search][regex]
       in: query
       description: |-
-        Flag to indicate if the search term for this column should be treated as regular expression (`true`) or not (`false`). 
+        Flag to indicate if the search term for this column should be treated as regular expression (`true`) or not (`false`).
       required: false
       schema:
         type: boolean
 
   # requestBodies:
-  
+
   # responses:
 
   securitySchemes:
@@ -1836,12 +1855,12 @@ components:
             view-email: Access user's email address.
         clientCredentials:
           tokenUrl: http://sandbox-api.example.com/v1/oauth/token
-          scopes: 
+          scopes:
             authenticate-user: Login, logout a user.
             check-email: Check if a user exists with the specified.
             reset-password: Change user's forgotten password.
             verify-email: Update a user's email as verified.
         password:
           tokenUrl: http://sandbox-api.example.com/v1/oauth/token
-          scopes: 
-            "*": All available scopes 
+          scopes:
+            "*": All available scopes
