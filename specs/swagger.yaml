@@ -52,6 +52,11 @@ tags:
     x-displayName: Role
     description: |
       <SchemaDefinition schemaRef="#/components/schemas/RoleModel"/>
+      
+  - name: user_scopes
+    x-displayName: User
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/UserScopes"/>
 
   - name: 206_datatables_response
     x-displayName: 206 Datatables Response
@@ -104,6 +109,9 @@ x-tagGroups:
       - user_model
       - permission_model
       - role_model
+  - name: Scopes
+    tags:
+      - user_scopes
   - name: Responses
     tags:
       - 206_datatables_response
@@ -219,16 +227,17 @@ paths:
       tags:
         - user
       summary: Get users
-      description: Requires `view-any users` permission.
+      description: |-
+        Requires `view-any users` permission.
+
+        Read more about the [query builder](https://spatie.be/docs/laravel-query-builder)
       operationId: getUsers
       parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 10
+        - $ref: '#/components/parameters/query-builder-select'
+        - $ref: '#/components/parameters/query-builder-filter'
+        - $ref: '#/components/parameters/query-builder-sort'
+        - $ref: '#/components/parameters/pagination-page-number'
+        - $ref: '#/components/parameters/pagination-page-size'
       responses:
         206:
           description: Partial Content
@@ -1490,7 +1499,6 @@ components:
       type: object
       required:
         - id
-        # - role_id
         - name
         - email
       properties:
@@ -1498,40 +1506,75 @@ components:
           readOnly: true
           type: integer
           example: 1
+          description: |-
+            [&#10004;] selectable
+            [&#10007;] filterable
+            [&#10007;] sortable
         role_id:
           type: integer
-          description: <a href="#tag/role_model">Role</a>
+          description: |-
+            <a href="#tag/role_model">Role</a>
+            
+            [&#10004;] selectable
+            [&#10007;] filterable
+            [&#10007;] sortable
           example: 1
         name:
           type: string
           maxLength: 25
-          description: Full name
+          description: |-
+            Full name
+            
+            [&#10004;] selectable
+            [&#10007;] filterable
+            [&#10007;] sortable
           example: John Doe
         email:
           type: string
-          description: Email address - unique.
+          description: |-
+            Email address - unique.
+            
+            [&#10004;] selectable
+            [&#10007;] filterable
+            [&#10007;] sortable
           format: email
           example: jdoe@example.com
         email_verified_at:
           type: string
           format: date-time
           nullable: true
+          description: |-
+            [&#10004;] selectable
+            [&#10007;] filterable
+            [&#10007;] sortable
         created_at:
           readOnly: true
           type: string
           format: date-time
           nullable: true
+          description: |-
+            [&#10004;] selectable
+            [&#10007;] filterable
+            [&#10007;] sortable
         updated_at:
           readOnly: true
           type: string
           format: date-time
           nullable: true
+          description: |-
+            [&#10004;] selectable
+            [&#10007;] filterable
+            [&#10007;] sortable
         deleted_at:
           readOnly: true
           type: string
           format: date-time
           example: null
           nullable: true
+          description: |-
+            [&#10004;] selectable
+            [&#10007;] filterable
+            [&#10007;] sortable
     PermissionModel:
       title: Permission
       type: object
@@ -1603,8 +1646,52 @@ components:
           format: date-time
           example: null
           nullable: true
+          
+    # Model scopes
 
+    UserScopes:
+      title: User scopes
+      type: object
+      properties:
+        trashed:
+          description: |-
+            The trashed filter responds to particular values:
+            
+            - `with` - include soft-deleted records to the result set
+            - `only` - return only 'trashed' records at the result set
+            
+            Only non-trashed records are returned as part of the result set by default
+            
+            **Usage**
+            
+            ```
+            GET /users?filter[trashed]=with
+            ```
+          type: string
+          enum:
+           - with
+           - only
+          example: with
+        verified:
+          description: |-
+            Filter users by email verification. 
+            
+            By default, all records are included in the result set regardless of the email verification status.
+            
+            - `true` - include only users with verified mails to the result set
+            - `false` - include only users with non verified emails to the result set
+            
+            **Usage**
+            
+            ```
+            GET /users?filter[verified]=1
+            ```
+          type: boolean
+          schema:
+            type: string
+            enum: [asc, desc]
     # HTTP Partial Content Responses
+    
     206DatatablesResponse:
       # description: |-
       #   [Read more...](https://datatables.net/manual/server-side)
@@ -1733,6 +1820,140 @@ components:
   # Reusable operation parameters
   #-------------------------------
   parameters:
+
+    # Laravel Query Builder
+
+    query-builder-include:
+      name: include
+      in: query
+      description: |-
+        Include desired relations
+
+        **Syntax**
+
+        ```
+        include=<model><, ...>
+        ```
+
+        **Example**
+
+        ```
+        GET /users?include=role
+        ```
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+        example: ['role']
+    query-builder-select:
+      name: fields
+      in: query
+      description: |-
+        Selecting desired columns.
+
+        **Syntax**
+
+        ```
+        fields[<table>]=<col><, ...>
+        ```
+
+        **Example**
+
+        ```
+        GET /users?fields[users]=id,name
+        ```
+      style: deepObject
+      schema:
+        type: object
+        properties:
+          users:
+            type: string
+            example: id,name
+    query-builder-filter:
+      name: filter
+      in: query
+      description: |-
+        Filter results by column or scope
+
+        **Syntax**
+
+        ```
+        filter[<col|scope>]=<value><, ...>
+        ```
+
+        **Example**
+
+        ```
+        GET /users?filter[email]=yahoo&filter[created_between]=2021-01-01,2021-01-31
+        ```
+      style: deepObject
+      schema:
+        type: object
+        properties:
+          email:
+            type: string
+            example: yahoo
+          created_between:
+            type: string
+            example: "2021-01-01,2021-01-31"
+    query-builder-sort:
+      name: sort
+      in: query
+      description: |-
+        Order results by column
+
+        **Syntax**
+
+        ```
+        sort=<<?dir><column>><, ...>
+        ```
+
+        **Example**
+
+        Order by created_at ascending
+
+        ```
+        GET /users?sort=created_at
+        ```
+
+        Order by created_at descending
+
+        _The field is preceeded by a dash/minus for desc order_
+
+        ```
+        GET /users?sort=-created_at
+        ```
+      style: form
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+        example: [-created_at]
+    pagination-page-number:
+      name: page[number]
+      in: query
+      description: |-
+        Page number
+      schema:
+        type: integer
+        example: 1
+    pagination-page-size:
+      name: page[size]
+      in: query
+      description: |-
+        Maximum number of records to return.
+      schema:
+        type: integer
+        # format: int32
+        minimum: 1
+        maximum: 30
+        example: 30
+
+    # jQuery Datatables
+
     dt-draw:
       name: draw
       in: query
