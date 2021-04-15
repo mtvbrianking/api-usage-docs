@@ -55,7 +55,9 @@ tags:
       
   - name: user_scopes
     x-displayName: User
-    description: |
+    description: |-
+      Scopes belonging to the user's model
+      
       <SchemaDefinition schemaRef="#/components/schemas/UserScopes"/>
 
   - name: 206_datatables_response
@@ -1508,16 +1510,16 @@ components:
           example: 1
           description: |-
             [&#10004;] selectable
-            [&#10007;] filterable
-            [&#10007;] sortable
+            [&#10004;] filterable
+            [&#10004;] sortable
         role_id:
           type: integer
           description: |-
             <a href="#tag/role_model">Role</a>
             
             [&#10004;] selectable
-            [&#10007;] filterable
-            [&#10007;] sortable
+            [&#10004;] filterable
+            [&#10004;] sortable
           example: 1
         name:
           type: string
@@ -1526,8 +1528,8 @@ components:
             Full name
             
             [&#10004;] selectable
-            [&#10007;] filterable
-            [&#10007;] sortable
+            [&#10004;] filterable
+            [&#10004;] sortable
           example: John Doe
         email:
           type: string
@@ -1535,8 +1537,8 @@ components:
             Email address - unique.
             
             [&#10004;] selectable
-            [&#10007;] filterable
-            [&#10007;] sortable
+            [&#10004;] filterable
+            [&#10004;] sortable
           format: email
           example: jdoe@example.com
         email_verified_at:
@@ -1546,7 +1548,7 @@ components:
           description: |-
             [&#10004;] selectable
             [&#10007;] filterable
-            [&#10007;] sortable
+            [&#10004;] sortable
         created_at:
           readOnly: true
           type: string
@@ -1574,7 +1576,7 @@ components:
           description: |-
             [&#10004;] selectable
             [&#10007;] filterable
-            [&#10007;] sortable
+            [&#10004;] sortable
     PermissionModel:
       title: Permission
       type: object
@@ -1687,9 +1689,7 @@ components:
             GET /users?filter[verified]=1
             ```
           type: boolean
-          schema:
-            type: string
-            enum: [asc, desc]
+          
     # HTTP Partial Content Responses
     
     206DatatablesResponse:
