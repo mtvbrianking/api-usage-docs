@@ -1953,6 +1953,7 @@ components:
         example: 30
 
     # jQuery Datatables
+    # https://stackoverflow.com/a/52894157/2732184
 
     dt-draw:
       name: draw
