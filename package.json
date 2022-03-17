@@ -23,6 +23,6 @@
     "laravel-mix": "^3.0.0",
     "redoc": "^2.0.0-rc.24",
     "swagger-editor-dist": "^3.8.0",
-    "swagger-ui-dist": "3.22.1"
+    "swagger-ui-dist": "4.1.3"
   }
 }
