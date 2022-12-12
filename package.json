@@ -18,7 +18,7 @@
   "dependencies": {},
   "devDependencies": {
     "cross-env": "^7.0.2",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "jquery": "^3.4.1",
     "laravel-mix": "^3.0.0",
     "redoc": "^2.0.0-rc.24",
