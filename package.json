@@ -7,22 +7,17 @@
   "private": true,
   "main": "app.js",
   "scripts": {
-    "dev": "npm run development",
-    "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "watch": "npm run development -- --watch",
-    "watch-poll": "npm run watch -- --watch-poll",
-    "hot": "cross-env NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "prod": "npm run production",
-    "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
   },
-  "dependencies": {},
   "devDependencies": {
-    "cross-env": "^7.0.2",
-    "express": "^4.17.1",
-    "jquery": "^3.4.1",
-    "laravel-mix": "^3.0.0",
-    "redoc": "^2.0.0-rc.24",
-    "swagger-editor-dist": "^3.8.0",
-    "swagger-ui-dist": "3.22.1"
+    "express": "^5.2.1",
+    "jquery": "^3.7.1",
+    "laravel-vite-plugin": "^2.0.1",
+    "redoc": "^2.5.2",
+    "swagger-editor-dist": "^4.14.8",
+    "swagger-ui-dist": "^5.31.0",
+    "vite-plugin-static-copy": "^3.1.4"
   }
 }
