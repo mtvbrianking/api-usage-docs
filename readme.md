@@ -47,3 +47,11 @@ Default spec: `public/specs/swagger.yaml`
 ```bash
 http://localhost:3000/swagger/edit
 ```
+
+**Swagger Online Demo**
+
+> https://petstore.swagger.io
+
+Use the link below
+
+> https://raw.githubusercontent.com/mtvbrianking/api-usage-docs/refs/heads/master/public/specs/swagger.yaml
